@@ -642,6 +642,25 @@ resources:
       secret_access_key: {{gcp_storage_secret_key}}
       endpoint: storage.googleapis.com
 
+- name: elsa-cats-logs-terraform
+  type: terraform
+  source:
+    storage:
+      bucket: {{elsa_bosh_vars_bucket}}
+      bucket_path: aws-storage-cats-logs
+      access_key_id: {{gcp_storage_access_key}}
+      secret_access_key: {{gcp_storage_secret_key}}
+      endpoint: storage.googleapis.com
+
+- name: elsa-acceptance-tests-logs
+  type: s3
+  source:
+    private: true
+    bucket: &elsa-cats-bucket elsa-cf-acceptance-tests-logs
+    regexp: acceptance_tests.(0)..*.tgz
+    access_key_id: {{xena_aws_access_key}}
+    secret_access_key: {{xena_aws_secret_key}}
+
 jobs:
 
 - name: check-cc-dependencies
@@ -970,6 +989,14 @@ jobs:
         aws_secret_key: {{xena_aws_secret_key}}
         cdn_key_pair_id: {{xena_cdn_key_pair_id}}
         cdn_private_key: {{xena_cdn_private_key}}
+  - put: elsa-cats-logs-terraform
+    params:
+      env_name: elsa
+      terraform_source: capi-ci/terraform/aws-s3-buckets-for-cats/
+      vars:
+        aws_access_key: {{xena_aws_access_key}}
+        aws_secret_key: {{xena_aws_secret_key}}
+        bucket_name: *elsa-cats-bucket
   - put: elsa-deployment
     params:
       source_file: bbl-vars/bbl-vars.json
